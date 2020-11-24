@@ -141,19 +141,18 @@ const componenteMasVendido = () => {
     for (let venta of local.ventas) {
         for (let componenteVendido of venta.componentes) {
             let perComp = { componente: componenteVendido, totalVendido: cantidadVentasComponente(componenteVendido) };
-            if (!ventasPorComp.includes(perComp)) ventasPorComp.push(perComp) //No sé por qué me pushea todo, a pesar de la condición que puse para que no pusheara repeticiones o_o
+            if (!ventasPorComp.find(venta => venta.componente === perComp.componente)) ventasPorComp.push(perComp)
         }
     }
-    console.log(ventasPorComp);//Array con todas las apariciones de los componentes en array ventas u_u
     for (let ventaPorComp of ventasPorComp) {
-        if (ventaPorComp.totalVendido > mayorVenta) {
-            mayorVenta = ventaPorComp.totalVendido;
-        }
+        if (ventaPorComp.totalVendido > mayorVenta) mayorVenta = ventaPorComp.totalVendido
+        const { componente, totalVendido } = ventasPorComp;
+        if (ventasPorComp.find(ventaPorComp => ventaPorComp[totalVendido] === mayorVenta))
+            return componente
     }
-    const { componente } = ventasPorComp.find(ventaPorComp => ventaPorComp.totalVendido === mayorVenta)
-    return componente
 }
-// console.log(componenteMasVendido()); // Monitor GPRS 3000
+
+console.log(componenteMasVendido()); // Monitor GPRS 3000
 
 /*6. huboVentas(mes, anio): que indica si hubo ventas en un mes determinado. El mes es un número entero que va desde el 1 (enero) hasta el 12 (diciembre).
  */
@@ -280,44 +279,43 @@ console.log(sucursalDelMes(2, 2019)); // "Centro"
  *
  * 1. renderPorMes(): Muestra una lista ordenada del importe total vendido por cada mes/año*/
 
-// const obtenerAñosOrdenados = () => {
-//     let añosRegistrados = [];
-//     for (let venta of local.ventas) {
-//         const { fecha } = venta;
-//         if (!añosRegistrados.includes(año => año === fecha.getFullYear)) añosRegistrados.push(fecha.getFullYear());
-//     }
-//     return añosRegistrados.sort();
-// }
+const obtenerAñosOrdenados = () => {
+    let añosRegistrados = [];
+    for (let venta of local.ventas) {
+        const { fecha } = venta;
+        if (!añosRegistrados.includes(año => año === fecha.getFullYear)) añosRegistrados.push(fecha.getFullYear());
+    }
+    return añosRegistrados.sort();
+}
 
-// console.log(obtenerAñosOrdenados());
+console.log(obtenerAñosOrdenados());
 
-// const renderPorAño = () => {
-//     const añosOrdenados = obtenerAñosOrdenados();
-//     for (let year of añosOrdenados) {
-//         let ventasPerYear = { año: year, totalPerYear };
-//         for (let venta of local.ventas) {
-//             if (venta.fecha[getFullYear() === year]) ventasPerYear.push(venta)
-//             totalPerYear = ventasPerYear.reduce((acumulador, venta) => {
-//                 acumulador += precioMaquina(venta.componentes)
-//             }, 0)
-//         }
+const renderPorAño = () => {
+    const añosOrdenados = obtenerAñosOrdenados();
+    for (let year of añosOrdenados) {
+        let ventasPerYear = { año: year, totalPerYear };
+        for (let venta of local.ventas) {
+            if (venta.fecha[getFullYear() === year]) ventasPerYear.push(venta)
+            totalPerYear = ventasPerYear.reduce((acumulador, venta) => {
+                acumulador += precioMaquina(venta.componentes)
+            }, 0)
+        }
 
-//     }
+    }
 
-//     const renderPorMes = () => {
-//         let ventasPerMoth = [];
-//         for (let i = 0; i < 12; i++) {
-//             let ventaPerMonth = ventasPerYear.filter(venta => venta.fecha.getMonth === i);
-//             let totalVentasPorMes = ventaPerMonth.reduce((acumulador, venta) => {
-//                 acumulador += precioMaquina(venta.componentes)
-//             }, 0)
-//             render = `Año: ${year}. Total de ${fecha.getMonth()}: ${totalVentasPorMes}`
-//             print.push(render)
-//         }
-//         i++
-//     }
-// }
-// return print
-// }
+    const renderPorMes = () => {
+        let ventasPerMoth = [];
+        for (let i = 0; i < 12; i++) {
+            let ventaPerMonth = ventasPerYear.filter(venta => venta.fecha.getMonth === i);
+            let totalVentasPorMes = ventaPerMonth.reduce((acumulador, venta) => {
+                acumulador += precioMaquina(venta.componentes)
+            }, 0)
+            render = `Año: ${year}. Total de ${fecha.getMonth()}: ${totalVentasPorMes}`
+            print.push(render)
+        }
+        i++
+    }
+    return print
+}
 
 // console.log(renderPorMes());
