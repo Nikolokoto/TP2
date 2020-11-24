@@ -32,10 +32,10 @@ var local = {
 precio de la máquina que se puede armar con esos componentes, que es la suma
 de los precios de cada componente incluido.*/
 
-const verificarComponente = (componente) => {
-    if (typeof componente !== "string") throw new Error("Esto no es un dato válido");
-    let foundComponente = local.precios.some(dataComponente => dataComponente.componente === componente)
-    if (foundComponente === false) throw new Error(`"${componente}" no existe. Verificar si hay errores de tipeo ;)`)
+const verificarComponente = (nombreComponente) => {
+    if (typeof nombreComponente !== "string") throw new Error("Esto no es un dato válido");
+    let foundComponente = local.precios.some(dataComponente => dataComponente.componente === nombreComponente)
+    if (foundComponente === false) throw new Error(`"${nombreComponente}" no existe. Verificar si hay errores de tipeo ;)`)
 }
 
 const buscarPrecioPorComponente = (componente) => {
@@ -50,7 +50,7 @@ const buscarPrecioPorComponente = (componente) => {
 
 const precioMaquina = (componentes) => {
     if (Array.isArray(componentes) !== true) throw new Error("El tipo de dato ingresado no es válido. Debe tener formato de array.");
-    return componentes.reduce((acumulador, componente) => acumulador + buscarPrecioPorComponente(componente), 0);
+    return componentes.reduce((acumulador, componente) => acumulador += buscarPrecioPorComponente(componente), 0);
 };
 
 // console.log(precioMaquina(["Monitor GPRS 3000", "Motherboard ASUS 1500"])); // 320 ($200 del monitor + $120 del motherboard)
@@ -83,7 +83,7 @@ const verificarFecha = (mes, anio) => {
     for (let i = 0; i < local.ventas.length; i++) {
         let foundPerYear = local.ventas.some(venta => venta.fecha.getFullYear() === anio)
         if (foundPerYear === true) {
-            let foundPerMonth = local.ventas.some(venta => venta.fecha.getMonth() === mes);
+            let foundPerMonth = local.ventas.some(venta => venta.fecha.getMonth() === mes - 1);
             if (foundPerMonth === true) {
                 continue
             } else {
@@ -99,14 +99,14 @@ const vendedoraDelMes = (mes, anio) => {
     verificarFecha(mes, anio);
     let mayorImporte = 0;
     let vendedoraMayorVentas;
-    for (i = 0; i < local.vendedoras.length; i++) {
+    for (let vendedora of local.vendedoras) {
         let importeVendedora = 0;
         for (let venta of local.ventas) {
-            if (venta.fecha.getFullYear() === anio && venta.fecha.getMonth() === mes - 1 && venta.nombreVendedora === local.vendedoras[i]) {
+            if (venta.fecha.getFullYear() === anio && venta.fecha.getMonth() === mes - 1 && venta.nombreVendedora === vendedora) {
                 importeVendedora += precioMaquina(venta.componentes)
             }
         }
-        let ventasPorVendedora = [local.vendedoras[i], importeVendedora];
+        let ventasPorVendedora = [vendedora, importeVendedora]
         if (ventasPorVendedora[1] > mayorImporte) mayorImporte = ventasPorVendedora[1]
         if (ventasPorVendedora[1] === mayorImporte) vendedoraMayorVentas = ventasPorVendedora[0]
     }
@@ -122,15 +122,13 @@ const verificarVendedora = (nombre) => {
     if (!local.vendedoras.some(vendedora => vendedora === nombre)) throw new Error('Al parecer el nombre ingresado no es de ninguna de las vendedoras')
 }
 
-const ventasVendedora = (nombre) => {
+const ventasVendedora1 = (nombre) => {
     verificarVendedora(nombre);
     let ventasTotal = 0;
-    for (i = 0; i < local.vendedoras.length; i++) {
-        for (let venta of local.ventas) {
-            if (venta.nombreVendedora === nombre) ventasTotal += precioMaquina(venta.componentes)
-        }
-        return ventasTotal
+    for (let venta of local.ventas) {
+        if (venta.nombreVendedora === nombre) ventasTotal += precioMaquina(venta.componentes)
     }
+    return ventasTotal
 }
 
 // console.log(ventasVendedora("Grace")); // 900
@@ -143,10 +141,10 @@ const componenteMasVendido = () => {
     for (let venta of local.ventas) {
         for (let componenteVendido of venta.componentes) {
             let perComp = { componente: componenteVendido, totalVendido: cantidadVentasComponente(componenteVendido) };
-            if (!ventasPorComp.includes(venta => venta === perComp)) ventasPorComp.push(perComp) //No sé por qué me pushea todo, a pesar de la condición que puse para que no pusheara repeticiones o_o
+            if (!ventasPorComp.includes(perComp)) ventasPorComp.push(perComp) //No sé por qué me pushea todo, a pesar de la condición que puse para que no pusheara repeticiones o_o
         }
     }
-    // console.log(ventasPorComp);//Array con todas las apariciones de los componentes en array ventas u_u
+    console.log(ventasPorComp);//Array con todas las apariciones de los componentes en array ventas u_u
     for (let ventaPorComp of ventasPorComp) {
         if (ventaPorComp.totalVendido > mayorVenta) {
             mayorVenta = ventaPorComp.totalVendido;
@@ -180,28 +178,146 @@ for (let venta of local.ventas) {
     venta.sucursal = 'Centro'
 }
 
-/**
- *2. Agregar al objeto principal la propiedad sucursales: ['Centro', 'Caballito']
- */
+/**2. Agregar al objeto principal la propiedad sucursales: ['Centro', 'Caballito']*/
 
 local.sucursales = ['Centro', 'Caballito'];
 
-/**
- *3. Cargar la siguiente información en el array ventas, creando sus respectivos objetos siguiendo el patrón: fecha, nombreVendedora, componentes, sucursal
- */
+/**3. Cargar la siguiente información en el array ventas, creando sus respectivos objetos siguiendo el patrón: fecha, nombreVendedora, componentes, sucursal.*/
 
-const modificarDatos = (fecha, nombre, componentes, sucursal) => {
-    fecha = new Date(fecha);
-    nombreVendedora = nombre.toString();
-    componentes = componentes.split(',');
-    sucursal = sucursal.toString
-    return { fecha, nombreVendedora, componentes, sucursal }
+// Qué feio hacer este pedazo a mano :(
+
+local.ventas.push({ fecha: new Date(2019, 1, 12), nombreVendedora: "Hedy", componentes: ["Monitor GPRS 3000", "HDD Toyiva"], sucursal: "Centro" });
+local.ventas.push({ fecha: new Date(2019, 1, 24), nombreVendedora: "Sheryl", componentes: ["Motherboard ASUS 1500", "HDD Wezter Dishital"], sucursal: "Caballito" });
+local.ventas.push({ fecha: new Date(2019, 1, 1), nombreVendedora: "Ada", componentes: ["Motherboard MZI", "RAM Quinston Fury"], sucursal: "Centro" });
+local.ventas.push({ fecha: new Date(2019, 1, 11), nombreVendedora: "Grace", componentes: ["Monitor ASC 543", "RAM Quinston"], sucursal: "Caballito" });
+local.ventas.push({ fecha: new Date(2019, 1, 15), nombreVendedora: "Ada", componentes: ["Motherboard ASUS 1200", "RAM Quinston Fury"], sucursal: "Centro" });
+local.ventas.push({ fecha: new Date(2019, 1, 12), nombreVendedora: "Hedy", componentes: ["Motherboard ASUS 1500", "HDD Toyiva"], sucursal: "Caballito" });
+local.ventas.push({ fecha: new Date(2019, 1, 21), nombreVendedora: "Grace", componentes: ["Motherboard MZI", "RAM Quinston"], sucursal: "Centro" });
+local.ventas.push({ fecha: new Date(2019, 1, 8), nombreVendedora: "Sheryl", componentes: ["Monitor ASC 543", "HDD Wezter Dishital"], sucursal: "Centro" });
+local.ventas.push({ fecha: new Date(2019, 1, 16), nombreVendedora: "Sheryl", componentes: ["Monitor GPRS 3000", "RAM Quinston Fury"], sucursal: "Centro" });
+local.ventas.push({ fecha: new Date(2019, 1, 27), nombreVendedora: "Hedy", componentes: ["Motherboard ASUS 1200", "HDD Toyiva"], sucursal: "Caballito" });
+local.ventas.push({ fecha: new Date(2019, 1, 22), nombreVendedora: "Grace", componentes: ["Monitor ASC 543", "HDD Wezter Dishital"], sucursal: "Centro" });
+local.ventas.push({ fecha: new Date(2019, 1, 5), nombreVendedora: "Ada", componentes: ["Motherboard ASUS 1500", "RAM Quinston"], sucursal: "Centro" });
+local.ventas.push({ fecha: new Date(2019, 1, 1), nombreVendedora: "Grace", componentes: ["Motherboard MZI", "HDD Wezter Dishital"], sucursal: "Centro" });
+local.ventas.push({ fecha: new Date(2019, 1, 7), nombreVendedora: "Sheryl", componentes: ["Monitor GPRS 3000", "RAM Quinston"], sucursal: "Caballito" });
+local.ventas.push({ fecha: new Date(2019, 1, 14), nombreVendedora: "Ada", componentes: ["Motherboard ASUS 1200", "HDD Toyiva"], sucursal: "Centro" });
+// console.log(local.ventas);
+
+/** 4. Crear la función ventasSucursal(sucursal), que obtiene las ventas totales realizadas por una sucursal sin límite de fecha.*/
+
+verificarSucursal = (sucursal) => {
+    if (typeof sucursal !== "string") throw new Error('El dato ingresado no parece un nombre, menos para una sucursal')
+    const { sucursales } = local;
+    if (!sucursales.includes(sucursal)) throw new Error(`Quizá '${sucursal}' exista, pero no como una de nuestras sucursales`)
 }
 
-const agregarVenta = (fecha, nombre, componentes, sucursal) => {
-    modificarDatos(fecha, nombre, componentes, sucursal);
-    return local.ventas.push(nuevaVenta)
+const ventasSucursal1 = (sucursal) => {
+    verificarSucursal(sucursal);
+    let ventasTotal = 0;
+    for (let venta of local.ventas) {
+        if (venta.sucursal === sucursal) ventasTotal += precioMaquina(venta.componentes)
+    }
+    return ventasTotal
 }
 
-venta(12 / 02 / 2019, Hedy, [Monitor GPRS 3000, HDD Toyiva], Centro);
-console.log(local.ventas);
+// console.log(ventasSucursal("Centro")); // 4195
+
+/** 5. Las funciones ventasSucursal y ventasVendedora tienen mucho código en común, ya que es la misma funcionalidad pero trabajando con una propiedad distinta. Entonces, ¿cómo harías para que ambas funciones reutilicen código y evitemos repetir?*/
+
+verificarInput = (key, value) => {
+    if (typeof value !== "string") throw new Error('El dato ingresado no parece ser un nombre')
+    let search = local.ventas.some(venta => venta[key] === value)
+    if (search === false) throw new Error(`El nombre ingresado '${value}' no se encuentra en nuestros registros`)
+}
+
+const calcularVentas = (key, value) => {
+    let ventasTotal = 0;
+    for (let venta of local.ventas) {
+        if (venta[key] === value) ventasTotal += precioMaquina(venta.componentes)
+    }
+    return ventasTotal
+}
+
+const ventasSucursal = (nombreSucursal) => {
+    verificarInput('sucursal', nombreSucursal);
+    return calcularVentas('sucursal', nombreSucursal);
+}
+
+const ventasVendedora = (vendedoraName) => {
+    verificarInput('nombreVendedora', vendedoraName);
+    return calcularVentas('nombreVendedora', vendedoraName);
+}
+
+// console.log(ventasVendedora("Grace")); // 1830
+// console.log(ventasSucursal("Centro")); // 4195
+
+/**6. Crear la función sucursalDelMes(mes, anio), que se le pasa dos parámetros numéricos, (mes, anio) y devuelve el nombre de la sucursal que más vendió en plata en el mes. No cantidad de ventas, sino importe total de las ventas. El importe de una venta es el que indica la función precioMaquina. El mes es un número entero que va desde el 1 (enero) hasta el 12 (diciembre).*/
+
+const sucursalDelMes = (mes, anio) => {
+    verificarFecha(mes, anio);
+    let sucursalMayorVentas;
+    let mayorImporte = 0;
+    for (let Sucursal of local.sucursales) {
+        let importeSucursal = 0;
+        for (let venta of local.ventas) {
+            const { fecha, sucursal } = venta
+            if (fecha.getFullYear() === anio && fecha.getMonth() === mes - 1 && sucursal === Sucursal) importeSucursal += precioMaquina(venta.componentes)
+        }
+        let ventasPorSucursal = { sucursal: Sucursal, totalVendido: importeSucursal };
+        if (ventasPorSucursal.totalVendido > mayorImporte) mayorImporte = ventasPorSucursal.totalVendido
+        if (ventasPorSucursal.totalVendido === mayorImporte) sucursalMayorVentas = ventasPorSucursal.Sucursal
+    }
+    return sucursalMayorVentas
+}
+
+console.log(sucursalDelMes(2, 2019)); // "Centro"
+
+/******************************************************************************************
+ * * * PARTE 3
+******************************************************************************************/
+
+/**Para tener una mejor muestra de como está resultando el local, queremos desarrollar un reporte que nos muestre las ventas por sucursal y por mes. Para esto, necesitamos crear las siguientes funciones:
+ *
+ * 1. renderPorMes(): Muestra una lista ordenada del importe total vendido por cada mes/año*/
+
+// const obtenerAñosOrdenados = () => {
+//     let añosRegistrados = [];
+//     for (let venta of local.ventas) {
+//         const { fecha } = venta;
+//         if (!añosRegistrados.includes(año => año === fecha.getFullYear)) añosRegistrados.push(fecha.getFullYear());
+//     }
+//     return añosRegistrados.sort();
+// }
+
+// console.log(obtenerAñosOrdenados());
+
+// const renderPorAño = () => {
+//     const añosOrdenados = obtenerAñosOrdenados();
+//     for (let year of añosOrdenados) {
+//         let ventasPerYear = { año: year, totalPerYear };
+//         for (let venta of local.ventas) {
+//             if (venta.fecha[getFullYear() === year]) ventasPerYear.push(venta)
+//             totalPerYear = ventasPerYear.reduce((acumulador, venta) => {
+//                 acumulador += precioMaquina(venta.componentes)
+//             }, 0)
+//         }
+
+//     }
+
+//     const renderPorMes = () => {
+//         let ventasPerMoth = [];
+//         for (let i = 0; i < 12; i++) {
+//             let ventaPerMonth = ventasPerYear.filter(venta => venta.fecha.getMonth === i);
+//             let totalVentasPorMes = ventaPerMonth.reduce((acumulador, venta) => {
+//                 acumulador += precioMaquina(venta.componentes)
+//             }, 0)
+//             render = `Año: ${year}. Total de ${fecha.getMonth()}: ${totalVentasPorMes}`
+//             print.push(render)
+//         }
+//         i++
+//     }
+// }
+// return print
+// }
+
+// console.log(renderPorMes());
