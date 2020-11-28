@@ -146,13 +146,12 @@ const componenteMasVendido = () => {
     }
     for (let ventaPorComp of ventasPorComp) {
         if (ventaPorComp.totalVendido > mayorVenta) mayorVenta = ventaPorComp.totalVendido
-        const { componente, totalVendido } = ventasPorComp;
-        if (ventasPorComp.find(ventaPorComp => ventaPorComp[totalVendido] === mayorVenta))
-            return componente
+        if (ventasPorComp.find(ventaPorComp => ventaPorComp.totalVendido === mayorVenta))
+            return ventaPorComp.componente
     }
 }
 
-console.log(componenteMasVendido()); // Monitor GPRS 3000
+// console.log(componenteMasVendido()); // Monitor GPRS 3000
 
 /*6. huboVentas(mes, anio): que indica si hubo ventas en un mes determinado. El mes es un número entero que va desde el 1 (enero) hasta el 12 (diciembre).
  */
@@ -247,7 +246,7 @@ const ventasVendedora = (vendedoraName) => {
     return calcularVentas('nombreVendedora', vendedoraName);
 }
 
-// console.log(ventasVendedora("Grace")); // 1830
+console.log(ventasVendedora("Grace")); // 1830
 // console.log(ventasSucursal("Centro")); // 4195
 
 /**6. Crear la función sucursalDelMes(mes, anio), que se le pasa dos parámetros numéricos, (mes, anio) y devuelve el nombre de la sucursal que más vendió en plata en el mes. No cantidad de ventas, sino importe total de las ventas. El importe de una venta es el que indica la función precioMaquina. El mes es un número entero que va desde el 1 (enero) hasta el 12 (diciembre).*/
@@ -259,17 +258,17 @@ const sucursalDelMes = (mes, anio) => {
     for (let Sucursal of local.sucursales) {
         let importeSucursal = 0;
         for (let venta of local.ventas) {
-            const { fecha, sucursal } = venta
-            if (fecha.getFullYear() === anio && fecha.getMonth() === mes - 1 && sucursal === Sucursal) importeSucursal += precioMaquina(venta.componentes)
+            const { fecha, sucursal } = venta;
+            if ((fecha.getFullYear() === anio) && (fecha.getMonth() === mes - 1) && (sucursal === Sucursal)) importeSucursal += precioMaquina(venta.componentes)
         }
         let ventasPorSucursal = { sucursal: Sucursal, totalVendido: importeSucursal };
         if (ventasPorSucursal.totalVendido > mayorImporte) mayorImporte = ventasPorSucursal.totalVendido
-        if (ventasPorSucursal.totalVendido === mayorImporte) sucursalMayorVentas = ventasPorSucursal.Sucursal
+        if (ventasPorSucursal.totalVendido === mayorImporte) sucursalMayorVentas = ventasPorSucursal.sucursal
     }
     return sucursalMayorVentas
 }
 
-console.log(sucursalDelMes(2, 2019)); // "Centro"
+// console.log(sucursalDelMes(2, 2019)); // "Centro"
 
 /******************************************************************************************
  * * * PARTE 3
@@ -279,43 +278,104 @@ console.log(sucursalDelMes(2, 2019)); // "Centro"
  *
  * 1. renderPorMes(): Muestra una lista ordenada del importe total vendido por cada mes/año*/
 
-const obtenerAñosOrdenados = () => {
+const ordenarPorAños = () => {
     let añosRegistrados = [];
     for (let venta of local.ventas) {
         const { fecha } = venta;
-        if (!añosRegistrados.includes(año => año === fecha.getFullYear)) añosRegistrados.push(fecha.getFullYear());
+        let año = fecha.getFullYear();
+        if (!añosRegistrados.includes(año)) añosRegistrados.push(fecha.getFullYear());
     }
     return añosRegistrados.sort();
 }
 
-console.log(obtenerAñosOrdenados());
-
-const renderPorAño = () => {
-    const añosOrdenados = obtenerAñosOrdenados();
-    for (let year of añosOrdenados) {
-        let ventasPerYear = { año: year, totalPerYear };
+const ventasPorAño = () => {
+    let añosOrdenados = ordenarPorAños();
+    for (let año of añosOrdenados) {
+        let ventasPorAño = []
         for (let venta of local.ventas) {
-            if (venta.fecha[getFullYear() === year]) ventasPerYear.push(venta)
-            totalPerYear = ventasPerYear.reduce((acumulador, venta) => {
-                acumulador += precioMaquina(venta.componentes)
-            }, 0)
+            if (venta.fecha.getFullYear() === año) ventasPorAño.push(venta)
         }
-
     }
-
-    const renderPorMes = () => {
-        let ventasPerMoth = [];
-        for (let i = 0; i < 12; i++) {
-            let ventaPerMonth = ventasPerYear.filter(venta => venta.fecha.getMonth === i);
-            let totalVentasPorMes = ventaPerMonth.reduce((acumulador, venta) => {
-                acumulador += precioMaquina(venta.componentes)
-            }, 0)
-            render = `Año: ${year}. Total de ${fecha.getMonth()}: ${totalVentasPorMes}`
-            print.push(render)
-        }
-        i++
-    }
-    return print
+    return añosOrdenados.forEach(año => renderPorMes(año))
 }
 
-// console.log(renderPorMes());
+const renderPorMes = (year) => {
+    console.log('Ventas por mes');
+    const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+    return meses.forEach((mes) => {
+        const idx = meses.indexOf(mes)
+        console.log(`Venta de ${mes} ${year}: ${ventasPorMes(idx)}`)
+    })
+}
+
+const ventasPorMes = (idx) => {
+    let ventasPorMes = [];
+    for (let venta of local.ventas) {
+        if (venta.fecha.getMonth() === idx) ventasPorMes.push(venta)
+    }
+    return ventaTotal = ventasPorMes.reduce((acumulador, venta) => acumulador += precioMaquina(venta.componentes), 0)
+}
+
+// console.log(ventasPorAño());
+
+/*2. renderPorSucursal(): Muestra una lista del importe total vendido por cada sucursal*/
+
+// const ventasSucursal = () => {
+//     const { sucursales, ventas } = local;
+//     let ventasPorSucursal = [];
+//     for (sucursal of sucursales) {
+//         for (let venta of ventas) {
+//             if (venta.sucursal === sucursal) ventasPorSucursal.push(venta)
+//         }
+//         return ventasPorSucursal.reduce((acumulador, venta) => acumulador += precioMaquina(venta.componentes), 0)
+//     }
+// }
+
+const renderPorSucursal = () => {
+    console.log('Ventas por sucursal');
+    return local.sucursales.forEach(sucursal => console.log(`Sucursal ${sucursal}: ` + ventasSucursal(sucursal)));
+}
+
+// console.log(renderPorSucursal());
+
+/*render(): Tiene que mostrar la unión de los dos reportes anteriores, cual fue el producto más vendido y la vendedora que más ingresos generó*/
+
+const vendedoraMayorVentas = () => {
+    let mayorVenta = 0;
+    let listaVendedorasIngresos = [];
+    let vendedoraMasIngresos;
+    // const { vendedoras } = local;
+    // vendedoras.forEach(vendedora => listaVendedorasIngresos.push({ nombre: vendedora, total: ventasVendedora(vendedora) }));
+    for (vendedora of local.vendedoras) {
+        console.log(ventasVendedora(vendedora)); // La función funciona correctamente. Devuelve los ingresos de todas las vendedoras
+        const ingresos = ventasVendedora(vendedora);
+        let ventasPerVendedora = { nombre: vendedora, total: ingresos };
+        listaVendedorasIngresos.push(ventasPerVendedora) //No sé por qué no guarda el valor que devuelve la función para la primera vendedora
+    }
+    console.log(listaVendedorasIngresos);
+    for (let ventasPerVendedora of listaVendedorasIngresos) {
+        if (ventasPerVendedora.total > mayorVenta) ventasPerVendedora.total = mayorVenta
+    }
+    for (ventasPerVendedora of listaVendedorasIngresos) {
+        if (ventasPerVendedora.total === mayorVenta) {
+            vendedoraMasIngresos = ventasPerVendedora.nombre
+        }
+    }
+    return vendedoraMasIngresos
+}
+
+const render = () => {
+    console.log('Reporte');
+    ventasPorAño();
+    renderPorSucursal();
+    console.log('Producto estrella: ' + componenteMasVendido());
+    console.log('Vendedora que más ingresos generó: ' + vendedoraMayorVentas());
+}
+
+console.log(render())
+
+    // for (vendedora of local.vendedoras) {
+    //     console.log(ventasVendedora(vendedora)); // La función funciona correctamente. Devuelve los ingresos de todas las vendedoras
+    //     let ventasPerVendedora = { nombre: vendedora, total: ventasVendedora(vendedora) };
+    //     listaVendedorasIngresos.push(ventasPerVendedora) //No sé por qué no guarda el valor que devuelve la función para la primera vendedora
+    // }
